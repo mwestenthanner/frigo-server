@@ -32,7 +32,7 @@ router.get('/', async (req, res) => {
 
 router.get('/stock', async (req, res) => {
     let query = {}
-    let { limit = 10, page = 1, q, locationId, quantity, onShoppingList, useUpMin, useUpMax } = req.query;
+    let { limit = 10, page = 1, q, locationId, quantity, onShoppingList, hasUseUp, useUpMin, useUpMax } = req.query;
     
     const limitRecords = parseInt(limit);
     const skip = (page -1) * limit;
@@ -45,22 +45,38 @@ router.get('/stock', async (req, res) => {
     if (quantity) query.quantity = quantity;
     if (onShoppingList) query.onShoppingList = onShoppingList;
 
-    if (useUpMin && useUpMax) query.$or = [
-        { useUp: {$gte: new Date(useUpMin), $lte: new Date(useUpMax)} },
-        { useUp: {$exists: false} },
-        { useUp: null } 
-    ]; else if (useUpMin) query.$or = [
-        { useUp: {$gte: new Date(useUpMin)} },
-        { useUp: {$exists: false} },
-        { useUp: null } 
-    ]; else if (useUpMax) query.$or = [
-        { useUp: {$lte: new Date(useUpMax)} },
-        { useUp: {$exists: false} },
-        { useUp: null } 
-    ];
+    let useUpQuery = { useUp: {$exists: false} }
+    if (hasUseUp) {
+        if (useUpMin && useUpMax) query.useUp = { 
+            $gte: new Date(useUpMin),
+            $lte: new Date(useUpMax),
+            $type: "date"
+        }; else if (useUpMin) query.useUp = { 
+            $gte: new Date(useUpMin),
+            $type: "date"
+        }; else if (useUpMax) query.useUp = { 
+            $lte: new Date(useUpMax),
+            $type: "date"
+        }
+    } else {
+        if (useUpMin && useUpMax) query.$or = [
+            { useUp: {$gte: new Date(useUpMin), $lte: new Date(useUpMax)} },
+            useUpQuery,
+            { useUp: null } 
+        ]; else if (useUpMin) query.$or = [
+            { useUp: {$gte: new Date(useUpMin)} },
+            useUpQuery,
+            { useUp: null } 
+        ]; else if (useUpMax) query.$or = [
+            { useUp: {$lte: new Date(useUpMax)} },
+            useUpQuery,
+            { useUp: null } 
+        ];
+    }
 
     query.inStock = true;
 
+    console.log(query)
     try {
         const productList = await Product.find(query).limit(limitRecords).skip(skip);
         if (!productList) throw new Error('No Product List found')
