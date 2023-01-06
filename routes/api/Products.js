@@ -1,4 +1,4 @@
-const { Router } = require('express')
+const { Router } = require('express');
 const Product = require('../../models/Product')
 
 const router = Router()
@@ -7,24 +7,22 @@ router.get('/', async (req, res) => {
 
     let { limit = 10, page = 1, q, locationId, inStock, quantity, onShoppingList } = req.query;
     
-    // Convert Limit and Page to Strings
-    // Good for pagination
     const limitRecords = parseInt(limit);
     const skip = (page -1) * limit;
 
-    // Insert everyting into one 'Query' object and check if empty
     let query = {};
-    if(q) {
+
+    if (q) {
         query = {$text: {$search: q}};
     }
 
-    if(locationId) query.locationId = locationId;
-    if(inStock) query.inStock = inStock;
-    if(quantity) query.quantity = quantity;
-    if(onShoppingList) query.onShoppingList = onShoppingList;
+    if (locationId) query.locationId = locationId;
+    if (inStock) query.inStock = inStock;
+    if (quantity) query.quantity = quantity;
+    if (onShoppingList) query.onShoppingList = onShoppingList;
 
     try {
-        const productList = await Product.find(query)
+        const productList = await Product.find(query).limit(limitRecords).skip(skip);
         if (!productList) throw new Error('No Product List found')
         res.status(200).json(productList)
     } catch (error) {
@@ -33,9 +31,62 @@ router.get('/', async (req, res) => {
 })
 
 router.get('/stock', async (req, res) => {
-    const query = { inStock: true }
+    let query = {}
+    let { limit = 10, page = 1, q, locationId, quantity, onShoppingList, useUpMin, useUpMax } = req.query;
+    
+    const limitRecords = parseInt(limit);
+    const skip = (page -1) * limit;
+
+    if (q) {
+        query = {$text: {$search: q}};
+    }
+    
+    if (locationId) query.locationId = locationId;
+    if (quantity) query.quantity = quantity;
+    if (onShoppingList) query.onShoppingList = onShoppingList;
+
+    if (useUpMin && useUpMax) query.useUp = { 
+        $gte: new Date(useUpMin),
+        $lte: new Date(useUpMax),
+        $type: "date"
+    }
+
+    if (useUpMin) query.useUp = { 
+        $gte: new Date(useUpMin),
+        $type: "date"
+    }
+
+    if (useUpMax) query.useUp = { 
+        $lte: new Date(useUpMax),
+        $type: "date"
+    }
+
+    query.inStock = true;
+
     try {
-        const productList = await Product.find(query)
+        const productList = await Product.find(query).limit(limitRecords).skip(skip);
+        if (!productList) throw new Error('No Product List found')
+        res.status(200).json(productList)
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+})
+
+router.get('/dates', async (req, res) => {
+    let { date } = req.query;
+    let dateFormatted = new Date(date);
+
+    console.log(date)
+
+    let query = {
+        useUp: { 
+            $gte: dateFormatted,
+            $type: "date"
+        }
+    }
+
+    try {
+        const productList = await Product.find(query);
         if (!productList) throw new Error('No Product List found')
         res.status(200).json(productList)
     } catch (error) {
@@ -67,12 +118,10 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
     const { id } = req.params
-    const {} = req.query; 
-
-    let query = {}
+    const updateObj = req.body;
 
     try {
-        const updated = await Product.updateOne({ _id: id }, query)
+        const updated = await Product.findByIdAndUpdate(id, updateObj, { new: true })
         if (!updated) throw Error('Something went wrong')
         res.status(200).json(updated)
     } catch (error) {
