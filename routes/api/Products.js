@@ -45,17 +45,19 @@ router.get('/stock', async (req, res) => {
     if (quantity) query.quantity = quantity;
     if (onShoppingList) query.onShoppingList = onShoppingList;
 
-    if (useUpMin && useUpMax) query.useUp = { 
-        $gte: new Date(useUpMin),
-        $lte: new Date(useUpMax),
-        $type: "date"
-    }; else if (useUpMin) query.useUp = { 
-        $gte: new Date(useUpMin),
-        $type: "date"
-    }; else if (useUpMax) query.useUp = { 
-        $lte: new Date(useUpMax),
-        $type: "date"
-    }
+    if (useUpMin && useUpMax) query.$or = [
+        { useUp: {$gte: new Date(useUpMin), $lte: new Date(useUpMax)} },
+        { useUp: {$exists: false} },
+        { useUp: null } 
+    ]; else if (useUpMin) query.$or = [
+        { useUp: {$gte: new Date(useUpMin)} },
+        { useUp: {$exists: false} },
+        { useUp: null } 
+    ]; else if (useUpMax) query.$or = [
+        { useUp: {$lte: new Date(useUpMax)} },
+        { useUp: {$exists: false} },
+        { useUp: null } 
+    ];
 
     query.inStock = true;
 
