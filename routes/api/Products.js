@@ -49,14 +49,10 @@ router.get('/stock', async (req, res) => {
         $gte: new Date(useUpMin),
         $lte: new Date(useUpMax),
         $type: "date"
-    }
-
-    if (useUpMin) query.useUp = { 
+    }; else if (useUpMin) query.useUp = { 
         $gte: new Date(useUpMin),
         $type: "date"
-    }
-
-    if (useUpMax) query.useUp = { 
+    }; else if (useUpMax) query.useUp = { 
         $lte: new Date(useUpMax),
         $type: "date"
     }
