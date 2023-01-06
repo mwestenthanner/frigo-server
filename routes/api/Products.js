@@ -106,7 +106,13 @@ router.get('/:id', async (req, res) => {
 })
 
 router.post('/', async (req, res) => {
-    const newProduct = new Product(req.body)
+    const product = req.body;
+    if (product.useUp) {
+        const useUpDate = new Date(product.useUp);
+        useUpDate.setUTCHours(0,0,0,0);
+        product.useUp = useUpDate.toISOString();
+    }
+    const newProduct = new Product(product)
     try {
         const product = await newProduct.save()
         if (!product) throw new Error('Something went wrong saving the entry')
