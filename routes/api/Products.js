@@ -45,7 +45,6 @@ router.get('/stock', async (req, res) => {
     if (quantity) query.quantity = quantity;
     if (onShoppingList) query.onShoppingList = onShoppingList;
 
-    let useUpQuery = { useUp: {$exists: false} }
     if (hasUseUp) {
         if (useUpMin && useUpMax) query.useUp = { 
             $gte: new Date(useUpMin),
@@ -61,22 +60,21 @@ router.get('/stock', async (req, res) => {
     } else {
         if (useUpMin && useUpMax) query.$or = [
             { useUp: {$gte: new Date(useUpMin), $lte: new Date(useUpMax)} },
-            useUpQuery,
+            { useUp: {$exists: false} },
             { useUp: null } 
         ]; else if (useUpMin) query.$or = [
             { useUp: {$gte: new Date(useUpMin)} },
-            useUpQuery,
+            { useUp: {$exists: false} },
             { useUp: null } 
         ]; else if (useUpMax) query.$or = [
             { useUp: {$lte: new Date(useUpMax)} },
-            useUpQuery,
+            { useUp: {$exists: false} },
             { useUp: null } 
         ];
     }
 
     query.inStock = true;
 
-    console.log(query)
     try {
         const productList = await Product.find(query).limit(limitRecords).skip(skip);
         if (!productList) throw new Error('No Product List found')
