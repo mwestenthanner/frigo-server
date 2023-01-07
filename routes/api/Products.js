@@ -1,5 +1,6 @@
 const { Router } = require('express');
 const { sanitize } = require('../../helpers/regex')
+const { getSortQuery } = require('../../helpers/sort')
 const Product = require('../../models/Product')
 
 const router = Router()
@@ -39,7 +40,7 @@ router.get('/', async (req, res) => {
 
 router.get('/stock', async (req, res) => {
     let query = {}
-    let { limit = 10, page = 1, q, locationId, quantity, onShoppingList, hasUseUp, useUpMin, useUpMax } = req.query;
+    let { limit = 10, page = 1, q, locationId, quantity, onShoppingList, hasUseUp, useUpMin, useUpMax, sort, sortBy } = req.query;
     
     const limitRecords = parseInt(limit);
     const skip = (page -1) * limit;
@@ -88,8 +89,11 @@ router.get('/stock', async (req, res) => {
 
     query.inStock = true;
 
+    let sortQuery = getSortQuery(sortBy, sort);
+    console.log(sortQuery)
+
     try {
-        const productList = await Product.find(query).limit(limitRecords).skip(skip);
+        const productList = await Product.find(query).limit(limitRecords).skip(skip).sort(sortQuery);
         if (!productList) throw new Error('No Product List found')
         res.status(200).json(productList)
     } catch (error) {
