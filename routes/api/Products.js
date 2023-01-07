@@ -1,4 +1,5 @@
 const { Router } = require('express');
+const { sanitize } = require('../../helpers/regex')
 const Product = require('../../models/Product')
 
 const router = Router()
@@ -13,7 +14,13 @@ router.get('/', async (req, res) => {
     let query = {};
 
     if (q) {
-        query = {$text: {$search: q}};
+        const regex = sanitize(q)
+        query = {
+            $or: [
+                { name: new RegExp(regex, 'i')},
+                { notes: new RegExp(regex, 'i')}
+            ]
+        }
     }
 
     if (locationId) query.locationId = locationId;
@@ -38,7 +45,13 @@ router.get('/stock', async (req, res) => {
     const skip = (page -1) * limit;
 
     if (q) {
-        query = {$text: {$search: q}};
+        const regex = sanitize(q)
+        query = {
+            $or: [
+                { name: new RegExp(regex, 'i')},
+                { notes: new RegExp(regex, 'i')}
+            ]
+        }
     }
     
     if (locationId) query.locationId = locationId;

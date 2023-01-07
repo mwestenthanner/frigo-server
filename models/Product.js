@@ -4,6 +4,7 @@ const ProductSchema = new Schema({
     name: {
         type: String,
         required: true,
+        text: true
     },
     locationId: {
         type: String,
@@ -40,6 +41,7 @@ const ProductSchema = new Schema({
     notes: {
         type: String,
         required: false,
+        text: true
     }
 })
 
