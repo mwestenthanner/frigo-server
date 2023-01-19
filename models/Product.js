@@ -38,6 +38,14 @@ const ProductSchema = new Schema({
         type: Number,
         required: false,
     },
+    markedAsBought: {
+        type: Boolean,
+        required: false,
+    },
+    buyAgain: {
+        type: Boolean,
+        required: false,
+    },
     notes: {
         type: String,
         required: false,

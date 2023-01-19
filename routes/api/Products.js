@@ -7,7 +7,7 @@ const router = Router()
 
 router.get('/', async (req, res) => {
 
-    let { limit = 10, page = 1, q, locationId, inStock, quantity, onShoppingList } = req.query;
+    let { limit = 10, page = 1, q, locationId, inStock, quantity, onShoppingList, markedAsBought, buyAgain } = req.query;
     
     const limitRecords = parseInt(limit);
     const skip = (page -1) * limit;
@@ -28,6 +28,8 @@ router.get('/', async (req, res) => {
     if (inStock) query.inStock = inStock;
     if (quantity) query.quantity = quantity;
     if (onShoppingList) query.onShoppingList = onShoppingList;
+    if (markedAsBought) query.markedAsBought = markedAsBought;
+    if (buyAgain) query.buyAgain = buyAgain;
 
     try {
         const productList = await Product.find(query).limit(limitRecords).skip(skip);

@@ -8,12 +8,9 @@ function getSortQuery (sortBy, desc) {
 
     if (sortBy == 'status') {
         sort = { useUp: -sortValue, onShoppingList: -sortValue }    
-    } else 
-    
-    if (!sortBy) {
-        sort = { name: sortValue }       
-    }
+    } 
 
+    else { sort = { name: sortValue } }
     return sort;
 }
 
