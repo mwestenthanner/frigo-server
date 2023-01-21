@@ -92,7 +92,6 @@ router.get('/stock', async (req, res) => {
     query.inStock = true;
 
     let sortQuery = getSortQuery(sortBy, sort);
-    console.log(sortQuery)
 
     try {
         const productList = await Product.find(query).limit(limitRecords).skip(skip).sort(sortQuery);
